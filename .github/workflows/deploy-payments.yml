@@ -1,0 +1,32 @@
+name: deploy-payments
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'payments/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v2
+      - name: Build docker image
+        run: cd payments && docker build -t austin316/payments .
+      - name: Docker authenticate
+        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Push image to docker
+        run: docker push austin316/payments
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Save DigitalOcean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ticketing
+      - name: Restart deployment
+        run: kubectl rollout restart deployment payments-depl

@@ -1,9 +1,9 @@
-name: tests-auth
+name: tests-tickets
 
 on:
   pull_request:
     paths:
-      - 'auth/**'
+      - 'tickets/**'
 
 jobs:
   build:
